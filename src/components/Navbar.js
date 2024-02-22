@@ -72,6 +72,9 @@ function Navbar() {
             <MenuItem onClick={handleMenuClose} component={Link} to="/group">
               <SiCoderwall style={{ marginRight: "10px" }} /> Group Management
             </MenuItem>
+            <MenuItem onClick={handleMenuClose} component={Link} to="/ads">
+              <SiCoderwall style={{ marginRight: "10px" }} /> Advertise Management
+            </MenuItem>
             <MenuItem onClick={handleLogoutClick}>
               <HiOutlineLogout style={{ marginRight: "10px" }} /> Logout
             </MenuItem>

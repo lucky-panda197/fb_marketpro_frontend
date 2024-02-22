@@ -14,7 +14,7 @@ const StyledModal = styled(Modal)({
 
 const ModalContent = styled(Box)(({ theme }) => ({
   position: "absolute",
-  width: 400,
+  width: 500,
   backgroundColor: theme.palette.background.paper,
   border: "2px solid #000",
   boxShadow: theme.shadows[5],
@@ -22,7 +22,7 @@ const ModalContent = styled(Box)(({ theme }) => ({
   outline: "none",
 }));
 
-const CustomModal = ({ title, open = false, onClose, children }) => {
+const CustomModal = ({ title, size, open = false, onClose, children }) => {
   return (
     <StyledModal
       open={open}
@@ -30,7 +30,7 @@ const CustomModal = ({ title, open = false, onClose, children }) => {
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
     >
-      <ModalContent>
+      <ModalContent sx={{width: size === "lg" ? "50%" : "400"}}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography id="modal-title" variant="h6" component="h2">
             {title}

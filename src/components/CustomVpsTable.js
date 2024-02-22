@@ -14,7 +14,7 @@ import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Typography from "@mui/material/Typography";
 
-function CustomTable({ data, isLoading, handleUpdateClick }) {
+function CustomVpsTable({ data, isLoading, handleUpdateClick }) {
   const [deleteVps, { isLoading: isDeleteLoading }] = useDeleteVpsMutation();
 
   const handleDeleteClick = (id) => {
@@ -58,7 +58,7 @@ function CustomTable({ data, isLoading, handleUpdateClick }) {
                         display: "inline-block",
                         px: 2,
                         py: 1,
-                        bgcolor: "primary.main",
+                        bgcolor: `${vps.vps_status ? "green.darker" : "gray.main"}`,
                         color: "primary.contrastText",
                         borderRadius: "4px",
                       }}
@@ -73,7 +73,7 @@ function CustomTable({ data, isLoading, handleUpdateClick }) {
                         display: "inline-block",
                         px: 2,
                         py: 1,
-                        bgcolor: "secondary.main",
+                        bgcolor: `${vps.fblogin_status ? "green.darker" : "gray.main"}`,
                         color: "secondary.contrastText",
                         borderRadius: "4px",
                       }}
@@ -110,4 +110,4 @@ function CustomTable({ data, isLoading, handleUpdateClick }) {
   );
 }
 
-export default CustomTable;
+export default CustomVpsTable;

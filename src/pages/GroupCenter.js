@@ -22,6 +22,8 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
+import Chip from "@mui/material/Chip";
+import Box from "@mui/material/Box";
 
 function GroupCenter() {
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -102,10 +104,19 @@ function GroupCenter() {
 
   const renderValue = (selected) => {
     // Map selected IDs back to their labels using the `vpss` array
-    return vpss
-      .filter((vps) => selected.includes(vps._id))
-      .map((vps) => vps.ip)
-      .join(", ");
+    return (
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+        {vpss
+          .filter((vps) => selected.includes(vps._id))
+          .map((vps) => (
+            <Chip key={vps.ip} label={vps.ip} />
+          ))}
+      </Box>
+    );
+    // vpss
+    //   .filter((vps) => selected.includes(vps._id))
+    //   .map((vps) => vps.ip)
+    //   .join(", ");
   };
 
   return (

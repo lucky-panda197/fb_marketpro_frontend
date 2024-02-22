@@ -6,5 +6,6 @@ export { default as CustomModal } from "./CustomModal";
 export { default as Loading } from "./Loading";
 export { default as Error } from "./Error";
 export { default as Navbar } from "./Navbar";
-export { default as CustomTable } from "./CustomTable";
+export { default as CustomVpsTable } from "./CustomVpsTable";
 export { default as CustomGroupTable } from "./CustomGroupTable";
+export { default as CustomAdsTable } from "./CustomAdsTable";

@@ -7,13 +7,13 @@ import {
   useAddVpsMutation,
   useUpdateVpsMutation,
 } from "services/apiService";
-import { CustomTable, Loading, Error, CustomModal } from "components"; // Make sure these are adapted to MUI if custom
+import { CustomVpsTable, Loading, Error, CustomModal } from "components"; // Make sure these are adapted to MUI if custom
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import InputAdornment from "@mui/material/InputAdornment";
 import CircularProgress from "@mui/material/CircularProgress";
-import { IoMdAddCircle } from "react-icons/io";
+import { IoMdAddCircle, IoMdRefresh } from "react-icons/io";
 import { FaRegAddressBook, FaFacebook } from "react-icons/fa";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
@@ -23,7 +23,9 @@ function VpsCenter() {
   const navigate = useNavigate();
   const [currentVps, setCurrentVps] = React.useState({});
   const [isUpdateModal, setIsUpdateModal] = React.useState(false);
-  const { data, isFetching, error } = useGetAllVpssQuery();
+  const { data, isFetching, error, refetch } = useGetAllVpssQuery(undefined, {
+    pollingInterval: parseInt(process.env.FETCH_INTERVAL) || 60000,
+  });
   const { register, handleSubmit, reset } = useForm();
   const [addVps, { isLoading: isAddLoading }] = useAddVpsMutation();
   const [updateVps, { isLoading: isUpdateLoading }] = useUpdateVpsMutation();
@@ -71,6 +73,10 @@ function VpsCenter() {
       });
   };
 
+  const handleRefreshClick = () => {
+    refetch();
+  };
+
   React.useEffect(() => {
     if (!isAuthenticated) {
       navigate("/");
@@ -104,7 +110,15 @@ function VpsCenter() {
         >
           Add
         </Button>
-        <CustomTable
+        <Button
+          variant="contained"
+          color="secondary" // Set the color to default or any other you prefer
+          startIcon={<IoMdRefresh />}
+          onClick={handleRefreshClick} // Use the refresh function here
+        >
+          Refresh
+        </Button>
+        <CustomVpsTable
           data={data}
           isLoading={isFetching}
           handleUpdateClick={handleUpdateClick}

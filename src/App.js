@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch } from "react-redux";
 import { Routes, Route } from "react-router-dom";
-import { Home, Login, VpsCenter, GroupCenter } from "pages";
+import { Home, Login, VpsCenter, GroupCenter, AdsCenter } from "pages";
 import { Header } from "components";
 import { loginUserSuccess } from "features/auth/authSlice";
 import ProtectedRoute from "./ProtectedRoute";
@@ -42,6 +42,14 @@ function App() {
           element={
             <ProtectedRoute>
               <GroupCenter />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ads"
+          element={
+            <ProtectedRoute>
+              <AdsCenter />
             </ProtectedRoute>
           }
         />

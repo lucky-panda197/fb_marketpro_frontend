@@ -1,13 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/dist/query/react";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.REACT_APP_API_URL,
+  baseUrl: `${process.env.REACT_APP_API_URL}/api`,
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("token");
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
-    headers.set("Content-Type", "application/json");
+    // headers.set("Content-Type", "application/json");
     return headers;
   },
 });
@@ -127,28 +127,68 @@ export const apiService = createApi({
       }),
       invalidatesTags: ["Group"],
     }),
+
+    //ADS endpoints
+    getAllAdss: builder.query({
+      query: () => ({ url: `/advertise` }),
+      providesTags: (result, error, arg) =>
+        result
+          ? [...result.map(({ id }) => ({ type: "Ads", id })), "Ads"]
+          : ["Ads"],
+    }),
+    addAds: builder.mutation({
+      query: (formData) => ({
+        url: `/advertise/create`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Ads"],
+    }),
+    getAds: builder.query({
+      query: (slug) => ({ url: `/advertise/${slug}` }),
+      providesTags: (result, error, arg) =>
+        result ? [{ type: "Ads", id: arg.id }] : [],
+    }),
+    deleteAds: builder.mutation({
+      query: (id) => ({
+        url: `/advertise/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Ads"],
+    }),
+    updateAds: builder.mutation({
+      query: ({formData, _id}) => ({
+        url: `/advertise/${_id}`,
+        method: "PUT",
+        body: formData,
+      }),
+      invalidatesTags: ["Ads"],
+    }),
   }),
 });
 
 export const {
   useGetAllPostsQuery,
-  useCreatePostMutation,
   useAddPostMutation,
   useGetPostQuery,
   useDeletePostMutation,
   useUpdatePostMutation,
 
   useGetAllVpssQuery,
-  useCreateVpsMutation,
   useAddVpsMutation,
   useGetVpsQuery,
   useDeleteVpsMutation,
   useUpdateVpsMutation,
 
   useGetAllGroupsQuery,
-  useCreateGroupMutation,
   useAddGroupMutation,
   useGetGroupQuery,
   useDeleteGroupMutation,
   useUpdateGroupMutation,
+
+  useGetAllAdssQuery,
+  useAddAdsMutation,
+  useGetAdsQuery,
+  useDeleteAdsMutation,
+  useUpdateAdsMutation,
 } = apiService;

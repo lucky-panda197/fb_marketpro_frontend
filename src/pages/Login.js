@@ -90,7 +90,7 @@ function Login() {
             component="h1"
             sx={{ mb: 2, fontWeight: "bold" }}
           >
-            Blogify Login
+            Login
           </Typography>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={2}>
