@@ -15,7 +15,7 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
-function CustomGroupTable({ data, isLoading, handleUpdateClick }) {
+function CustomGroupTable({ data, isLoading, onUpdateClick }) {
   const [deleteGroup, { isLoading: isDeleteLoading }] =
     useDeleteGroupMutation();
 
@@ -86,8 +86,7 @@ function CustomGroupTable({ data, isLoading, handleUpdateClick }) {
                       <Button
                         onClick={() => {
                           const vpsArray = group.vps_ips.map((vps) => vps._id);
-                          handleUpdateClick({ ...group, vps_ips: vpsArray });
-                          // handleUpdateClick(group);
+                          onUpdateClick({ ...group, vps_ips: vpsArray });
                         }}
                         startIcon={<AiOutlineEdit />}
                       >

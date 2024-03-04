@@ -91,6 +91,15 @@ export const apiService = createApi({
       invalidatesTags: ["Vps"],
     }),
 
+    updateGroupVps: builder.mutation({
+      query: (body) => ({
+        url: `/vps/${body._id}/group`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Vps"],
+    }),
+
     //Group endpoints
     getAllGroups: builder.query({
       query: () => ({ url: `/groups` }),
@@ -127,6 +136,23 @@ export const apiService = createApi({
       }),
       invalidatesTags: ["Group"],
     }),
+    assignGroup: builder.mutation({
+      query: (body) => ({
+        url: `/groups/${body._id}/assign_group`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Group"],
+    }),
+    removeAssignGroup: builder.mutation({
+      query: (body) => ({
+        url: `/groups/${body._id}/remove_assign_group`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Group"],
+    }),
+
 
     //ADS endpoints
     getAllAdss: builder.query({
@@ -157,10 +183,18 @@ export const apiService = createApi({
       invalidatesTags: ["Ads"],
     }),
     updateAds: builder.mutation({
-      query: ({formData, _id}) => ({
+      query: ({ formData, _id }) => ({
         url: `/advertise/${_id}`,
         method: "PUT",
         body: formData,
+      }),
+      invalidatesTags: ["Ads"],
+    }),
+    postAds: builder.mutation({
+      query: (body) => ({
+        url: `/advertise/${body._id}/post`,
+        method: "PUT",
+        body,
       }),
       invalidatesTags: ["Ads"],
     }),
@@ -173,6 +207,7 @@ export const {
   useGetPostQuery,
   useDeletePostMutation,
   useUpdatePostMutation,
+  useUpdateGroupVpsMutation,
 
   useGetAllVpssQuery,
   useAddVpsMutation,
@@ -185,10 +220,13 @@ export const {
   useGetGroupQuery,
   useDeleteGroupMutation,
   useUpdateGroupMutation,
+  useAssignGroupMutation,
+  useRemoveAssignGroupMutation,
 
   useGetAllAdssQuery,
   useAddAdsMutation,
   useGetAdsQuery,
   useDeleteAdsMutation,
   useUpdateAdsMutation,
+  usePostAdsMutation
 } = apiService;

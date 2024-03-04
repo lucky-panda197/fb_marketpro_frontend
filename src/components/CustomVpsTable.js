@@ -14,7 +14,7 @@ import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Typography from "@mui/material/Typography";
 
-function CustomVpsTable({ data, isLoading, handleUpdateClick }) {
+function CustomVpsTable({ data, isLoading, onUpdateClick }) {
   const [deleteVps, { isLoading: isDeleteLoading }] = useDeleteVpsMutation();
 
   const handleDeleteClick = (id) => {
@@ -87,7 +87,7 @@ function CustomVpsTable({ data, isLoading, handleUpdateClick }) {
                       aria-label="outlined primary button group"
                     >
                       <Button
-                        onClick={() => handleUpdateClick(vps)}
+                        onClick={() => onUpdateClick(vps)}
                         startIcon={<AiOutlineEdit />}
                       >
                         Update

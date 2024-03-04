@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
   useGetAllVpssQuery,
+  useUpdateGroupVpsMutation,
   useGetAllGroupsQuery,
   useUpdateGroupMutation,
-  useAddGroupMutation,
+  useAddGroupMutation
 } from "services/apiService";
 import { CustomGroupTable, Loading, Error, CustomModal } from "components"; // Ensure these are adapted for MUI
 import TextField from "@mui/material/TextField";
@@ -36,6 +37,7 @@ function GroupCenter() {
     isFetching: vpsIsFetching,
     error: vpsError,
   } = useGetAllVpssQuery();
+  const [updateGroupVps] = useUpdateGroupVpsMutation();
   const { register, handleSubmit, reset } = useForm();
   const [addGroup, { isLoading: isAddLoading }] = useAddGroupMutation();
   const [updateGroup, { isLoading: isUpdateLoading }] =
@@ -69,10 +71,12 @@ function GroupCenter() {
   const handleUpdateSubmit = (data) => {
     const action = currentGroup._id ? updateGroup : addGroup;
     action(currentGroup)
-      .then(() => {
+      .then(({ data }) => {
         !currentGroup._id
           ? showSnackbar("Group added successfully!", "success")
           : showSnackbar("Group updated successfully!", "success");
+        data.group.vps_ips.map((vps) =>
+          updateGroupVps({ _id: vps, group: data.group._id }))
         setIsUpdateModal(false);
         reset();
       })
@@ -113,10 +117,6 @@ function GroupCenter() {
           ))}
       </Box>
     );
-    // vpss
-    //   .filter((vps) => selected.includes(vps._id))
-    //   .map((vps) => vps.ip)
-    //   .join(", ");
   };
 
   return (
@@ -144,7 +144,7 @@ function GroupCenter() {
         <CustomGroupTable
           data={data}
           isLoading={isFetching}
-          handleUpdateClick={handleUpdateClick}
+          onUpdateClick={handleUpdateClick}
         />
         <CustomModal
           title={!currentGroup?._id ? "Add New Group" : "Update Group"}

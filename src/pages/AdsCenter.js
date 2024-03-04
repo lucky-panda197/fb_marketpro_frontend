@@ -7,6 +7,9 @@ import {
   useGetAllAdssQuery,
   useAddAdsMutation,
   useUpdateAdsMutation,
+  usePostAdsMutation,
+  useAssignGroupMutation,
+  useRemoveAssignGroupMutation,
 } from "services/apiService";
 import { CustomAdsTable, Loading, Error, CustomModal } from "components"; // Make sure these are adapted to MUI if custom
 import TextField from "@mui/material/TextField";
@@ -16,6 +19,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import InputAdornment from "@mui/material/InputAdornment";
 import CircularProgress from "@mui/material/CircularProgress";
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import { IoMdAddCircle } from "react-icons/io";
 import { MdOutlineTitle, MdOutlineDescription } from "react-icons/md";
 import Snackbar from "@mui/material/Snackbar";
@@ -25,23 +29,67 @@ import Alert from "@mui/material/Alert";
 import { DropzoneArea } from "material-ui-dropzone";
 import OpenAI from "openai";
 
-const generateAdContent = async () => {
+const generateAdContent = async ({ title, description }) => {
   const openai = new OpenAI({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY, // This is also the default, can be omitted
     dangerouslyAllowBrowser: true,
   });
 
-  console.log(process.env.REACT_APP_OPENAI_API_KEY);
-  console.log("openai", openai);
+  // const openaiSecond = new OpenAI({
+  //   apiKey: process.env.REACT_APP_OPENAI_API_KEY_SECOND, // This is also the default, can be omitted
+  //   dangerouslyAllowBrowser: true,
+  // });
+
+  // const openaiThird = new OpenAI({
+  //   apiKey: process.env.REACT_APP_OPENAI_API_KEY_THIRD, // This is also the default, can be omitted
+  //   dangerouslyAllowBrowser: true,
+  // });
+
+  // const openaiFourth = new OpenAI({
+  //   apiKey: process.env.REACT_APP_OPENAI_API_KEY_FOURTH, // This is also the default, can be omitted
+  //   dangerouslyAllowBrowser: true,
+  // });
+
+  let messages = { content: "", comments: [] };
 
   try {
-    const response = await openai.completions.create({
-      model: "text-davinci-003",
-      prompt: "This story begins",
-      max_tokens: 30,
+    const content = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "user",
+          content: `create impressive and fashion advertise content for this title - ${title} and here's the reference - ${description}`,
+        },
+      ],
+      model: "gpt-3.5-turbo",
     });
+    messages.content = content.choices[0]?.message.content?.trim() || "";
+    // const comment1 = await openaiSecond.chat.completions.create({
+    //   messages: [
+    //     {
+    //       role: "user", content: `create positive comments with 10 - 20 words for the advertise having this title - ${title} and this content - ${description}`
+    //     },],
+    //   model: "gpt-3.5-turbo",
+    // });
+    // messages.comments.push({ comment: comment1.choices[0]?.message.content?.trim() || "" });
+    // await new Promise(resolve => setTimeout(resolve, 40000));
+    // const comment2 = await openaiThird.chat.completions.create({
+    //   messages: [
+    //     {
+    //       role: "user", content: `create positive comments with 10 - 20 words for the advertise having this title - ${title} and this content - ${description}`
+    //     },],
+    //   model: "gpt-3.5-turbo",
+    // });
+    // messages.comments.push({ comment: comment2.choices[0]?.message.content?.trim() || "" });
 
-    return response.data.choices[0].text.trim();
+    // const comment3 = await openaiFourth.chat.completions.create({
+    //   messages: [
+    //     {
+    //       role: "user", content: `create positive comments with 10 - 20 words for the advertise having this title - ${title} and this content - ${description}`
+    //     },],
+    //   model: "gpt-3.5-turbo",
+    // });
+    // messages.comments.push({ comment: comment3.choices[0]?.message.content?.trim() || "" });
+    return messages;
   } catch (error) {
     console.error("Error generating ad content:", error);
     return "Failed to generate ad content.";
@@ -56,23 +104,28 @@ function AdsCenter() {
   const { data, isFetching, error } = useGetAllAdssQuery();
   const {
     data: groups,
-    isFetching: groupIsFetching,
-    error: groupError,
+    isFetching: groupsIsFetching,
+    error: groupsError,
   } = useGetAllGroupsQuery();
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
   const [addAds, { isLoading: isAddLoading }] = useAddAdsMutation();
   const [updateAds, { isLoading: isUpdateLoading }] = useUpdateAdsMutation();
+  const [postAds] = usePostAdsMutation();
+  const [assignGroup] = useAssignGroupMutation();
+  const [removeAssignGroup] = useRemoveAssignGroupMutation();
   const [snackbar, setSnackbar] = React.useState({
     open: false,
     message: "",
     severity: "success",
   });
   const [images, setImages] = React.useState([]);
-  const [adContent, setAdContent] = React.useState("");
 
-  const handleGenerateContent = async () => {
-    const content = await generateAdContent();
-    setAdContent(content);
+  const handleClickGenerate = async () => {
+    const messages = await generateAdContent({
+      title: watch("title"),
+      description: watch("descriptoin"),
+    });
+    setValue("description", messages.content);
   };
 
   const showSnackbar = (message, severity = "success") => {
@@ -96,20 +149,48 @@ function AdsCenter() {
     setCurrentAds(Ads);
   };
 
+  const handleStartClick = (Ads) => {
+    console.log(Ads);
+    const earliestVps = Ads.assigned_group.vps_ips.reduce((a, b) =>
+      new Date(a.posted_at) < new Date(b.posted_at) ? a : b
+    );
+    console.log("vpsforpost", earliestVps);
+    // const commentVpss = Ads.assigned_group.vps_ips.filter((vps) => vps !== earliestVps);
+    // console.log("commentvps", commentVpss);
+    // const comments = [];
+    // Ads.comments.map((comment, index) => comments.push({ comment, vps: commentVpss[index]._id }));
+    // console.log('comments', comments);
+    postAds({ _id: Ads._id, posted: "PENDING", postVps: earliestVps._id })
+      .then(() => showSnackbar("Start Advertising!"))
+      .catch((err) => {
+        console.log(err);
+        showSnackbar("Error, try again!", "error");
+      });
+  };
+
   const handleUpdateSubmit = (data) => {
     const formData = new FormData();
     Object.keys(data).forEach((key) => formData.append(key, data[key]));
+    // formData.append("comments", JSON.stringify(comments));
     images.forEach((image) => formData.append("images", image));
     for (let [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
+      console.log(`${key}: ${JSON.stringify(value)})`);
+    }
+    if (currentAds._id && currentAds.assigned_group) {
+      removeAssignGroup({
+        _id: currentAds.assigned_group._id,
+        ad: currentAds._id,
+      });
     }
     const action = currentAds._id ? updateAds : addAds;
 
     action(currentAds._id ? { formData, _id: currentAds._id } : formData)
-      .then(() => {
+      .then(({ data }) => {
         !currentAds._id
           ? showSnackbar("Advertisement added successfully!", "success")
           : showSnackbar("Advertisements updated successfully!", "success");
+        console.log("response", data);
+        assignGroup({ _id: data?.ad.assigned_group, ad: data?.ad._id });
         setIsUpdateModal(false);
         reset();
       })
@@ -131,11 +212,11 @@ function AdsCenter() {
     }
   }, [isUpdateModal, reset]);
 
-  if (isFetching || groupIsFetching) {
+  if (isFetching || groupsIsFetching) {
     return <Loading />;
   }
 
-  if (error || groupError) {
+  if (error || groupsError) {
     return <Error />;
   }
 
@@ -157,12 +238,9 @@ function AdsCenter() {
         <CustomAdsTable
           data={data}
           isLoading={isFetching}
-          handleUpdateClick={handleUpdateClick}
+          onUpdateClick={handleUpdateClick}
+          onStartClick={handleStartClick}
         />
-        <div>
-          <button onClick={handleGenerateContent}>Generate Ad Content</button>
-          <p>{adContent}</p>
-        </div>
         <CustomModal
           title={!currentAds?._id ? "Add New Advertise" : "Update Advertise"}
           size="lg"
@@ -213,7 +291,7 @@ function AdsCenter() {
                 fullWidth
                 multiline
                 rows={3}
-                label="Enter Description..."
+                label="Enter Content..."
                 variant="outlined"
                 {...register("description")}
                 defaultValue={currentAds.description || ""}
@@ -221,6 +299,15 @@ function AdsCenter() {
                   startAdornment: (
                     <InputAdornment position="start">
                       <MdOutlineDescription />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment
+                      title="Generate content"
+                      sx={{ cursor: "pointer" }}
+                      position="end"
+                    >
+                      <AutoFixHighIcon onClick={handleClickGenerate} />
                     </InputAdornment>
                   ),
                 }}

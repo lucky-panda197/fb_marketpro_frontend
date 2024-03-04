@@ -121,7 +121,7 @@ function VpsCenter() {
         <CustomVpsTable
           data={data}
           isLoading={isFetching}
-          handleUpdateClick={handleUpdateClick}
+          onUpdateClick={handleUpdateClick}
         />
         <CustomModal
           title={!currentVps?._id ? "Add New VPS" : "Update VPS"}
