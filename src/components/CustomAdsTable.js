@@ -2,7 +2,11 @@ import React from "react";
 import moment from "moment";
 import { AiFillDelete, AiOutlineEdit } from "react-icons/ai";
 import { VscDebugStart } from "react-icons/vsc";
-import { useDeleteAdsMutation, useRemoveAssignGroupMutation } from "services/apiService";
+import {
+  useRepostAdsMutation,
+  useDeleteAdsMutation,
+  useRemoveAssignGroupMutation,
+} from "services/apiService";
 import { Loading } from "components"; // Ensure this is adapted for MUI
 import { Toast, ToastEmit } from "utils/flashMessages"; // Adjust for MUI or ensure compatibility
 import Table from "@mui/material/Table";
@@ -13,19 +17,29 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import Checkbox from "@mui/material/Checkbox";
 
 function CustomAdsTable({ data, isLoading, onUpdateClick, onStartClick }) {
+  const [repostAds] = useRepostAdsMutation();
   const [deleteAds, { isLoading: isDeleteLoading }] = useDeleteAdsMutation();
   const [removeAssignGroup] = useRemoveAssignGroupMutation();
+
+  const handleChangeRepost = (e, ads) => {
+    console.log(e.target.checked);
+    repostAds({ _id: ads._id, repost: e.target.checked })
+      .then(() => {})
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   const handleDeleteClick = (ads) => {
     deleteAds(ads._id)
       .then(() => {
         ToastEmit("success", "Ads deleted successfully!");
-        removeAssignGroup({ _id: ads.assigned_group._id, ad: ads._id })
-
+        removeAssignGroup({ _id: ads.assigned_group._id, ad: ads._id });
       })
       .catch((err) => {
         console.log(err);
@@ -51,6 +65,7 @@ function CustomAdsTable({ data, isLoading, onUpdateClick, onStartClick }) {
               <TableCell align="center">Status</TableCell>
               <TableCell align="center">Created At</TableCell>
               <TableCell align="center">Operations</TableCell>
+              <TableCell align="center">Repost</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -59,10 +74,10 @@ function CustomAdsTable({ data, isLoading, onUpdateClick, onStartClick }) {
                 <TableRow key={ads._id} hover>
                   {/* <TableCell align="center">{index + 1}</TableCell> */}
                   <TableCell align="center">{ads?.title}</TableCell>
-                  <TableCell align="center">{ads?.description.slice(0, 150)}...</TableCell>
-                  <TableCell
-                    align="center"
-                  >
+                  <TableCell align="center">
+                    {ads?.description.slice(0, 150)}...
+                  </TableCell>
+                  <TableCell align="center">
                     {/* {" "} */}
                     {/* {ads?.images.map((path, index) => ( */}
                     <img
@@ -84,7 +99,13 @@ function CustomAdsTable({ data, isLoading, onUpdateClick, onStartClick }) {
                         display: "inline-block",
                         px: 2,
                         py: 1,
-                        bgcolor: `${ads?.posted === "NEW" ? "green.darker" : ads?.posted === "PENDING" ? "yellow.dark" : "gray.main"}`,
+                        bgcolor: `${
+                          ads?.posted === "NEW"
+                            ? "green.darker"
+                            : ads?.posted === "PENDING"
+                            ? "yellow.dark"
+                            : "gray.main"
+                        }`,
                         color: "primary.contrastText",
                         borderRadius: "4px",
                       }}
@@ -125,6 +146,13 @@ function CustomAdsTable({ data, isLoading, onUpdateClick, onStartClick }) {
                         <AiFillDelete />
                       </IconButton>
                     </ButtonGroup>
+                  </TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={ads?.repost}
+                      onChange={(e) => handleChangeRepost(e, ads)}
+                      inputProps={{ "aria-label": "controlled" }}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

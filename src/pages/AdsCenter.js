@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
+  useAddCommentMutation,
   useGetAllGroupsQuery,
   useGetAllAdssQuery,
   useAddAdsMutation,
@@ -96,6 +97,29 @@ const generateAdContent = async ({ title, description }) => {
   }
 };
 
+const generateAdComment = async ({ title, description }) => {
+  const openai = new OpenAI({
+    apiKey: process.env.REACT_APP_OPENAI_API_KEY, // This is also the default, can be omitted
+    dangerouslyAllowBrowser: true,
+  });
+
+  try {
+    const content = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "user",
+          content: `create positive comment with less than 10 words for this advertisement content - title:${title};  content:${description}`,
+        },
+      ],
+      model: "gpt-3.5-turbo",
+    });
+    return content.choices[0]?.message.content?.trim() || "";
+  } catch (error) {
+    console.error("Error generating ad content:", error);
+    return "Failed to generate ad content.";
+  }
+};
+
 function AdsCenter() {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -109,6 +133,7 @@ function AdsCenter() {
   } = useGetAllGroupsQuery();
   const { register, handleSubmit, reset, setValue, watch } = useForm();
   const [addAds, { isLoading: isAddLoading }] = useAddAdsMutation();
+  const [addComment] = useAddCommentMutation();
   const [updateAds, { isLoading: isUpdateLoading }] = useUpdateAdsMutation();
   const [postAds] = usePostAdsMutation();
   const [assignGroup] = useAssignGroupMutation();
@@ -149,23 +174,70 @@ function AdsCenter() {
     setCurrentAds(Ads);
   };
 
-  const handleStartClick = (Ads) => {
+  const handleStartClick = async (Ads) => {
     console.log(Ads);
     const earliestVps = Ads.assigned_group.vps_ips.reduce((a, b) =>
       new Date(a.posted_at) < new Date(b.posted_at) ? a : b
     );
     console.log("vpsforpost", earliestVps);
-    // const commentVpss = Ads.assigned_group.vps_ips.filter((vps) => vps !== earliestVps);
-    // console.log("commentvps", commentVpss);
-    // const comments = [];
-    // Ads.comments.map((comment, index) => comments.push({ comment, vps: commentVpss[index]._id }));
-    // console.log('comments', comments);
-    postAds({ _id: Ads._id, posted: "PENDING", postVps: earliestVps._id })
-      .then(() => showSnackbar("Start Advertising!"))
-      .catch((err) => {
-        console.log(err);
-        showSnackbar("Error, try again!", "error");
+    const commentVpss = Ads.assigned_group.vps_ips.filter(
+      (vps) => vps !== earliestVps
+    );
+    console.log("commentvps", commentVpss);
+
+    try {
+      // Mark the ad as pending using the earliest VPS
+      await postAds({
+        _id: Ads._id,
+        posted: "PENDING",
+        postVps: earliestVps._id,
       });
+      showSnackbar("Start Advertising!");
+
+      const comments = [];
+      for (const vps of commentVpss) {
+        // Generate and store comments for the ad using the remaining VPSs
+        const comment = await generateAdComment({
+          title: Ads.title,
+          description: Ads.description,
+        });
+        comments.push({ ads: Ads._id, comment, vps: vps._id });
+
+        // Wait for 20 seconds before proceeding to the next VPS
+        await new Promise((resolve) => setTimeout(resolve, 20000));
+      }
+      console.log("comments", comments);
+      for (const comment of comments) {
+        try {
+          await addComment(comment); // Add each comment to the database
+        } catch (err) {
+          console.log(err); // Handle individual comment addition errors
+        }
+      }
+    } catch (err) {
+      // Log and show error if the ad posting or comment generation fails
+      console.log(err);
+      showSnackbar("Error, try again!", "error");
+    }
+    // postAds({ _id: Ads._id, posted: "PENDING", postVps: earliestVps._id })
+    //   .then(async () => {
+    //     showSnackbar("Start Advertising!");
+
+    //     const comments = [];
+    //     for (const vps of commentVpss) {
+    //       const comment = await generateAdComment({
+    //         title: Ads.title,
+    //         description: Ads.content,
+    //       });
+    //       comments.push({ ads: Ads._id, comment, vps: vps._id });
+    //       await new Promise((resolve) => setTimeout(resolve, 20000));
+    //     }
+    //     console.log("comments", comments);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //     showSnackbar("Error, try again!", "error");
+    //   });
   };
 
   const handleUpdateSubmit = (data) => {

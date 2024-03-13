@@ -153,7 +153,6 @@ export const apiService = createApi({
       invalidatesTags: ["Group"],
     }),
 
-
     //ADS endpoints
     getAllAdss: builder.query({
       query: () => ({ url: `/advertise` }),
@@ -198,6 +197,51 @@ export const apiService = createApi({
       }),
       invalidatesTags: ["Ads"],
     }),
+    repostAds: builder.mutation({
+      query: (body) => ({
+        url: `/advertise/${body._id}/repost`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Ads"],
+    }),
+
+    //Comment endpoints
+    getAllComments: builder.query({
+      query: () => ({ url: `/comments` }),
+      providesTags: (result, error, arg) =>
+        result
+          ? [...result.map(({ id }) => ({ type: "Comment", id })), "Comment"]
+          : ["Comment"],
+    }),
+    addComment: builder.mutation({
+      query: (body) => ({
+        url: `/comments/create`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Comment"],
+    }),
+    getComment: builder.query({
+      query: (slug) => ({ url: `/comments/${slug}` }),
+      providesTags: (result, error, arg) =>
+        result ? [{ type: "Comment", id: arg.id }] : [],
+    }),
+    deleteComment: builder.mutation({
+      query: (id) => ({
+        url: `/comments/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Comment"],
+    }),
+    updateComment: builder.mutation({
+      query: (body) => ({
+        url: `/comments/${body._id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Comment"],
+    }),
   }),
 });
 
@@ -228,5 +272,12 @@ export const {
   useGetAdsQuery,
   useDeleteAdsMutation,
   useUpdateAdsMutation,
-  usePostAdsMutation
+  usePostAdsMutation,
+  useRepostAdsMutation,
+
+  useGetAllCommentsQuery,
+  useAddCommentMutation,
+  useGetCommentQuery,
+  useDeleteCommentMutation,
+  useUpdateCommentMutation,
 } = apiService;
